@@ -1,8 +1,10 @@
 import React from "react";
 import DocumentsList from "src/components/DocumentsList";
 import { Layout } from "antd";
-import { color1, color2 } from "../../colors";
+import { color2 } from "../../colors";
 import HeaderComp from "src/components/HeaderComp";
+import SearchControls from "src/components/SearchControls";
+import SideBarComponent from "src/components/SideBar";
 
 const { Header, Footer, Sider, Content } = Layout;
 
@@ -13,10 +15,11 @@ const Home = () => {
                 <HeaderComp />
             </Header>
             <Layout>
-                <Sider width={50} style={{ backgroundColor: color1 }}>
-
+                <Sider width={350} style={{ backgroundColor: "white", padding: 20 }}>
+                    <SideBarComponent />
                 </Sider>
                 <Content>
+                    <SearchControls />
                     <DocumentsList />
                 </Content>
             </Layout>

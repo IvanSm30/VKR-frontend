@@ -2,6 +2,7 @@ import { InboxOutlined, UploadOutlined } from "@ant-design/icons";
 import { Button, GetProp, Modal, Upload, UploadFile, UploadProps } from "antd"; // message
 import React, { useEffect, useState } from "react";
 import { useAppDispatch } from "src/store/hooks";
+import { FileData } from "./DocumentsList/types";
 
 const { Dragger } = Upload;
 type FileType = Parameters<GetProp<UploadProps, 'beforeUpload'>>[0];
@@ -22,17 +23,22 @@ const header = () => {
             body: formData,
         })
             .then((res) => res.json())
-            .then(() => {
+            .then((newFiles: FileData[]) => {
+                // Dispatch action to add new files to the Redux store
+                newFiles.forEach(file => {
+                    dispatch({ type: "files/addFile", payload: file });
+                });
                 setFileList([]);
-                // message.success('upload successfully.');
             })
             .catch(() => {
                 // message.error('upload failed.');
             })
             .finally(() => {
+                setOpenModal(false)
                 setUploading(false);
             });
     };
+
 
     const props: UploadProps = {
         onRemove: (file) => {
@@ -48,19 +54,19 @@ const header = () => {
         fileList,
     };
 
+    const fetchFiles = async () => {
+        const response = await fetch('/api/get_files');
+        const data = await response.json();
+        if (Array.isArray(data)) {
+            data.forEach(file => {
+                dispatch({ type: "files/addFile", payload: file });
+            });
+        }
+    };
+
     useEffect(() => {
-        const fetchFiles = async () => {
-            const response = await fetch('/api/get_files');
-            const data = await response.json();
-            if (Array.isArray(data)) {
-                data.forEach(file => {
-                    dispatch({ type: "files/addFile", payload: file });
-                });
-            }
-        };
- 
         fetchFiles();
-    }, [dispatch]); 
+    }, []);
 
     const openModalDownload = () => {
         setOpenModal(true);

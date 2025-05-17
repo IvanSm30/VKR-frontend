@@ -31,16 +31,16 @@ const SearchControls = () => {
     };
 
     return (
-        <Flex vertical={false}>
+        <Flex vertical={false} justify="center" align="center" style={{paddingTop: 10, width: '100%', flexWrap: 'wrap'}}>
             {/* {contextHolder} */}
             <Search
                 placeholder="Текст для поиска"
                 allowClear
                 onSearch={onSearch}
-                style={{ width: 200 }}
+                style={{ width: 500, marginRight: 5 }}
             />
-            <Button icon={<SwapOutlined rotate={90} />} onClick={sort} />
-            <Button icon={<FilterOutlined onClick={filter} />} onMouseEnter={() => { }} onMouseLeave={() => { }} />
+            <Button icon={<SwapOutlined rotate={90} />} onClick={sort} style={{ marginRight: 5 }} />
+            <Button icon={<FilterOutlined onClick={filter} />} style={{ marginRight: 5 }} onMouseEnter={() => { }} onMouseLeave={() => { }} />
             <Button icon={<ReloadOutlined rotate={90} />} onClick={resetSorting} />
         </Flex>
     );

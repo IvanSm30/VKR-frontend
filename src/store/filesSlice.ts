@@ -15,8 +15,8 @@ export const filesSlice = createSlice({
       state.filteredFiles.push(action.payload);
     },
     deleteFile: (state, action) => {
-      state.allFiles = state.allFiles.filter((file) => file.file_path !== action.payload);
-      state.filteredFiles = state.filteredFiles.filter((file) => file.file_path !== action.payload);
+      state.allFiles = state.allFiles.filter((file) => file.title !== action.payload);
+      state.filteredFiles = state.filteredFiles.filter((file) => file.title !== action.payload);
     },
     searchFile: (state, action) => {
       if (action.payload === "") {
@@ -42,7 +42,5 @@ export const filesSlice = createSlice({
     },
   },
 });
-
-export const { addFile, deleteFile, searchFile, sortFile, resetSort } = filesSlice.actions;
 
 export default filesSlice.reducer;
