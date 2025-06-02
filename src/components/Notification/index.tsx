@@ -1,17 +1,18 @@
+import React, { useEffect } from "react";
 import { notification } from "antd";
 
-const NotificationComponent = (text: string) => {
-    const [api, contextHolder] = notification.useNotification();
+const NotificationComponent: React.FC<{ text: string }> = ({ text }) => {
+  const [api, contextHolder] = notification.useNotification();
 
-    const openNotification = () => {
-        api.info({
-            message: `Уведомление`,
-            description: text,
-            placement: "topRight",
-        });
-    };
+  useEffect(() => {
+    api.info({
+      message: "Уведомление",
+      description: text,
+      placement: "topRight",
+    });
+  }, [api, text]);
 
-    return { openNotification, contextHolder };
+  return <>{contextHolder}</>;
 };
 
 export default NotificationComponent;

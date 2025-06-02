@@ -1,3 +1,4 @@
+import { FileOutlined } from "@ant-design/icons";
 import { Tabs, TabsProps, Tree, TreeDataNode } from "antd";
 import React from "react";
 import { useAppSelector } from "src/store/hooks";
@@ -7,67 +8,62 @@ const { DirectoryTree } = Tree;
 
 const SideBarComponent = () => {
     const files = useAppSelector((state) => state.files.filteredFiles);
-    const docsByAppointment: string[] = [
-        'распорядительные',
-        'кадровые',
-        'нормативные',
-        'коммерческие',
-        'организационно-правовые',
-        'информационно-справочные',
-        'финансово-бухгалтерские',
-        'научно-технические',
-        'юридические'
-    ];
-
-    const docsByTypes: string[] = [
-        'приказы',
-        'распоряжения',
-        'договора',
-        'дела',
-        'заявления',
-        'законы',
-        'постановления',
-        'инструкции',
-        'стандарты',
-        'контракты',
-        'уставы',
-        'положения',
-        'регламенты',
-        'письма',
-        'доклады',
-        'записки',
-        'счета',
-        'накладные',
-        'протоколы',
-        'проекты',
-        'справки',
-        'соглашения',
-        'согласия',
-        'анкеты',
-        'акты',
-        'заявки',
-        'выписки'
-    ];
-
     const treeDataAppointment: TreeDataNode[] = []
     const treeDataTypes: TreeDataNode[] = []
 
-    docsByAppointment.map((doc, i) => {
-        treeDataAppointment.push({
-            title: doc,
-            key: i,
-            children: [],
-            icon: ""
-        })
-    })
+    files.map((file) => {
 
-    docsByTypes.map((doc, i) => {
-        treeDataTypes.push({
-            title: doc,
-            key: i,
-            children: [],
-            icon: ""
+        const treeDataAppointment_allNames = treeDataAppointment.map(item => item.title);
+        file.labels["По назначению"].map((label: string) => {
+            if (!treeDataAppointment_allNames.includes(label)) {
+                treeDataAppointment.push({
+                    title: label,
+                    key: `${label}-${file.id}`,
+                    children: [{
+                        title: file.title,
+                        key: `${file.title}-${file.id}`,
+                        icon: <FileOutlined />
+                    }]
+                })
+            } else {
+                treeDataAppointment.map((i) => {
+                    if (i.title == label) {
+                        i.children?.push({
+                            title: file.title,
+                            key: `${file.title}-${file.id}`,
+                            icon: <FileOutlined />,
+                        })
+                    }
+                })
+            }
         })
+
+        const treeDataTypes_allNames = treeDataTypes.map(item => item.title);
+        if (file.labels["По типу"] === "-") {
+            return;
+        }
+        if (!treeDataTypes_allNames.includes(file.labels["По типу"])) {
+            treeDataTypes.push({
+                title: file.labels["По типу"],
+                key: `${file.labels["По типу"]}-${file.id}`,
+                children: [{
+                    title: file.title,
+                    key: `${file.title}-${file.id}`,
+                    icon: <FileOutlined />
+                }]
+            })
+        } else {
+            treeDataTypes.map((i) => {
+                if (i.title === file.labels["По типу"]) {
+                    i.children?.push({
+                        title: file.title,
+                        key: `${file.title}-${file.id}`,
+                        icon: <FileOutlined />,
+                    })
+                }
+            })
+        }
+
     })
 
     const items: TabsProps['items'] = [
@@ -83,13 +79,8 @@ const SideBarComponent = () => {
         },
     ];
 
-
-
-
-
-
     return (
-        <Tabs defaultActiveKey="1" items={items} />
+        <Tabs defaultActiveKey="1" items={items}/>
     )
 }
 

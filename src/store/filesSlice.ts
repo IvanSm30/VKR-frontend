@@ -1,22 +1,62 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { FileData } from "../components/DocumentsList/types";
 
-const initialState = {
-  allFiles: [] as FileData[],
-  filteredFiles: [] as FileData[],
+interface FilesState {
+  allFiles: FileData[];
+  filteredFiles: FileData[];
+  pendingFiles: FileData[];
+  oldCount: number;
+  newCount: number;
+}
+
+const initialState: FilesState = {
+  allFiles: [],
+  filteredFiles: [],
+  pendingFiles: [],
+  oldCount: 0,
+  newCount: 0,
 };
 
 export const filesSlice = createSlice({
   name: "files",
   initialState,
   reducers: {
+    setPendingFile: (state, action) => {
+      state.pendingFiles.unshift(action.payload);
+    },
+    acceptFile: (state, action) => {
+      const exists = state.allFiles.some(
+        (file) => file.title === action.payload.title
+      );
+      if (!exists) {
+        state.allFiles.unshift(action.payload);
+        state.filteredFiles.unshift(action.payload);
+        state.pendingFiles = state.pendingFiles.filter(
+          (file) => file.title !== action.payload.title
+        );
+      }
+    },
+    rejectFile: (state, action) => {
+      state.pendingFiles = state.pendingFiles.filter(
+        (file) => file.title !== action.payload.title
+      );
+    },
     addFile: (state, action) => {
-      state.allFiles.push(action.payload);
-      state.filteredFiles.push(action.payload);
+      const exists = state.allFiles.some(
+        (file) => file.title === action.payload.title
+      );
+      if (!exists) {
+        state.allFiles.unshift(action.payload);
+        state.filteredFiles.unshift(action.payload);
+      }
     },
     deleteFile: (state, action) => {
-      state.allFiles = state.allFiles.filter((file) => file.title !== action.payload);
-      state.filteredFiles = state.filteredFiles.filter((file) => file.title !== action.payload);
+      state.allFiles = state.allFiles.filter(
+        (file) => file.id !== action.payload
+      );
+      state.filteredFiles = state.filteredFiles.filter(
+        (file) => file.id !== action.payload
+      );
     },
     searchFile: (state, action) => {
       if (action.payload === "") {
@@ -30,7 +70,7 @@ export const filesSlice = createSlice({
     sortFile: (state, action) => {
       const sortOrder = action.payload;
       state.filteredFiles.sort((a, b) => {
-        if (sortOrder === 'asc') {
+        if (sortOrder === "asc") {
           return a.file_path.localeCompare(b.file_path);
         } else {
           return b.file_path.localeCompare(a.file_path);

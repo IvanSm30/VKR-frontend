@@ -1,9 +1,10 @@
 export interface FileData {
-    id?: number;
+    id: number;
     file_path: string;
-    labels: Record<string, any> | null;
+    labels: { "По назначению": string[], "По типу": string };
     content_type: string;
-    keywords: Record<string, any> | null;
     title: string;
     date_created: string;
+    file_path_convert_pdf: string;
+    user_id?: number
 }

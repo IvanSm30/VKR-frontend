@@ -1,17 +1,24 @@
-import { InboxOutlined, UploadOutlined } from "@ant-design/icons";
-import { Button, GetProp, Modal, Upload, UploadFile, UploadProps } from "antd"; // message
-import React, { useEffect, useState } from "react";
-import { useAppDispatch } from "src/store/hooks";
+import { InboxOutlined, LogoutOutlined, UploadOutlined, UserOutlined } from "@ant-design/icons";
+import { Button, Modal, Upload, UploadFile, UploadProps, Space, Typography, GetProp, message } from "antd";
+import React, { useState } from "react";
+import { useAppDispatch, useAppSelector } from "src/store/hooks";
 import { FileData } from "./DocumentsList/types";
+import { useNavigate } from "react-router-dom";
+import { UserData } from "src/store/userSlice/types";
 
 const { Dragger } = Upload;
+const { Text } = Typography;
 type FileType = Parameters<GetProp<UploadProps, 'beforeUpload'>>[0];
 
-const header = () => {
+const Header: React.FC = () => {
     const dispatch = useAppDispatch();
+    const navigate = useNavigate();
     const [fileList, setFileList] = useState<UploadFile[]>([]);
     const [uploading, setUploading] = useState(false);
     const [openModal, setOpenModal] = useState(false);
+    const user = useAppSelector(state => state.user.user);
+    const [messageApi, contextHolder] = message.useMessage();
+
     const handleUpload = () => {
         const formData = new FormData();
         fileList.forEach((file) => {
@@ -21,83 +28,92 @@ const header = () => {
         fetch('/api/upload_files', {
             method: 'POST',
             body: formData,
+            credentials: 'include',
         })
             .then((res) => res.json())
             .then((newFiles: FileData[]) => {
-                // Dispatch action to add new files to the Redux store
                 newFiles.forEach(file => {
                     dispatch({ type: "files/addFile", payload: file });
                 });
                 setFileList([]);
             })
             .catch(() => {
-                // message.error('upload failed.');
+                console.error('Загрузка не успешна!');
+                messageApi.error('Загрузка не успешна!');
             })
             .finally(() => {
-                setOpenModal(false)
+                messageApi.success('Загрузка файлов прошла успешна!')
+                setOpenModal(false);
                 setUploading(false);
             });
     };
 
-
     const props: UploadProps = {
         onRemove: (file) => {
-            const index = fileList.indexOf(file);
-            const newFileList = fileList.slice();
-            newFileList.splice(index, 1);
-            setFileList(newFileList);
+            setFileList(prev => prev.filter(f => f.uid !== file.uid));
         },
         beforeUpload: (file) => {
-            setFileList([...fileList, file]);
-            return false;
+            setFileList(prev => [...prev, file]);
+            return false; // prevent auto upload
         },
         fileList,
     };
 
-    const fetchFiles = async () => {
-        const response = await fetch('/api/get_files');
-        const data = await response.json();
-        if (Array.isArray(data)) {
-            data.forEach(file => {
-                dispatch({ type: "files/addFile", payload: file });
-            });
-        }
-    };
-
-    useEffect(() => {
-        fetchFiles();
-    }, []);
-
     const openModalDownload = () => {
         setOpenModal(true);
     };
+
     const closeModalDownload = () => {
         setOpenModal(false);
     };
 
-    return (
-        <div>
-            <Button onClick={openModalDownload} icon={<UploadOutlined />} />
-            <Modal open={openModal} onCancel={closeModalDownload} footer={null}>
-                <Dragger {...props} style={{ marginTop: 25 }}>
-                    <p className="ant-upload-drag-icon">
-                        <InboxOutlined />
-                    </p>
-                    <p className="ant-upload-text">Нажмите или перетащите файл в эту область для загрузки</p>
-                    <p className="ant-upload-hint">Поддержка одиночной или массовой загрузки</p>
-                </Dragger>
-                <Button
-                    type="primary"
-                    onClick={handleUpload}
-                    disabled={fileList.length === 0}
-                    loading={uploading}
-                    style={{ marginTop: 16 }}
-                >
-                    {uploading ? 'Загрузка' : 'Начать загрузку'}
-                </Button>
-            </Modal>
-        </div>
-    )
-}
+    const handleLogout = async () => {
+        await fetch('/api/auth/logout', {
+            method: 'POST',
+            credentials: 'include',
+        });
+        dispatch({ type: "user/clearUser" });
+        navigate("/login");
+    };
 
-export default header;
+    return (
+        <>
+            {contextHolder}
+            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                <Button onClick={openModalDownload} icon={<UploadOutlined />}>
+                    Загрузить файлы
+                </Button>
+                <Button onClick={handleLogout} icon={<LogoutOutlined />} danger>
+                    Выйти
+                </Button>
+                <Space align="center" style={{ marginLeft: "auto" }}>
+                    <UserOutlined style={{ fontSize: 20, color: "white" }} />
+                    <Text style={{ color: "white" }}>
+                        {user ? (user as UserData).fio : "Гость"}
+                    </Text>
+                </Space>
+
+                <Modal open={openModal} onCancel={closeModalDownload} footer={null} title="Загрузка файлов">
+                    <Dragger {...props} style={{ marginTop: 25 }}>
+                        <p className="ant-upload-drag-icon">
+                            <InboxOutlined />
+                        </p>
+                        <p className="ant-upload-text">Нажмите или перетащите файл в эту область для загрузки</p>
+                        <p className="ant-upload-hint">Поддержка одиночной или массовой загрузки</p>
+                    </Dragger>
+                    <Button
+                        type="primary"
+                        onClick={handleUpload}
+                        disabled={fileList.length === 0}
+                        loading={uploading}
+                        style={{ marginTop: 16, width: "100%" }}
+                    >
+                        {uploading ? 'Загрузка...' : 'Начать загрузку'}
+                    </Button>
+                </Modal>
+            </div>
+        </>
+    );
+};
+
+export default Header;

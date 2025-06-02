@@ -4,16 +4,19 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "styles.css";
 import { Provider } from "react-redux";
 import { store } from "./store";
+import ConfigProvider from "antd/es/config-provider";
 
 const router = createBrowserRouter(routes);
 
 const App = () => {
     return (
-        <Provider store={store}>
-            <React.StrictMode>
-                <RouterProvider router={router} />
-            </React.StrictMode>
-        </Provider>
+        <ConfigProvider>
+            <Provider store={store}>
+                <React.StrictMode>
+                    <RouterProvider router={router} />
+                </React.StrictMode>
+            </Provider>
+        </ConfigProvider>
     );
 };
 export default App;
